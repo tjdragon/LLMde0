@@ -485,19 +485,23 @@ The idea is to convert Input Embeddings into Key, Query and Value vectors.
 
 Let's get to the original phrase, Inputs = "Les sanglots longs des violons", asssuming 3 features per word, each row representing a word: les, sanglots, longs, des, violons: $A_i$ is a float number:
 
+```math
 Inputs (5x3) = $\begin{bmatrix}A1 &A2 & A3\\A4 & A5 & A6\\A7 & A8 & A9\\A10 & A11 & A12\\A13 & A14 & A15 \end{bmatrix}$
-
+```
 Assume 3 trained matrices $W_q$, $W_k$ and $W_v$.
 
+```math
 $W_q$ (3x2) = $\begin{bmatrix}Q1 & Q2\\Q3 & Q4\\Q5 & Q6 \end{bmatrix}$
 $W_k$ (3x2) = $\begin{bmatrix}K1 & K2\\K3 & K4\\K5 & K6 \end{bmatrix}$
 $W_v$ (3x2) = $\begin{bmatrix}V1 & V2\\V3 & V4\\V5 & V6 \end{bmatrix}$
-
+```
+```math
 Queries = Inputs * $W_q$ (5x2) = $\begin{bmatrix}Q'1 & Q'2\\Q'3 & Q'4\\Q'5 & Q'6\\Q'7 & Q'8\\Q'9 & Q'10 \end{bmatrix}$
 
 Keys = Inputs * $W_k$ (5x2) = $\begin{bmatrix}K'1 & K'2\\K'3 & K'4\\K'5 & K'6\\K'7 & K'8\\K'9 & K'10 \end{bmatrix}$
 
 Values = Inputs * $W_v$ (5x2) = $\begin{bmatrix}V'1 & V'2\\V'3 & V'4\\V'5 & V'6\\V'7 & V'8\\V'9 & V'10 \end{bmatrix}$
+```
 
 Now we need to compute the attention score for each input.
 

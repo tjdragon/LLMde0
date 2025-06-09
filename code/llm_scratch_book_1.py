@@ -28,3 +28,9 @@ var = out_ln.var(dim=-1, keepdim=True)
 print("LayerNorm output shape:", out_ln.shape)
 print("Mean:", mean)
 print("Variance:", var)
+
+# Testing the feed forward layer
+from llm_arch import FeedForward
+feed_forward = FeedForward(GPT_CONFIG_124M)
+ff_out = feed_forward(torch.randn(2, 3, 768))
+print("FeedForward output shape:", ff_out.shape)

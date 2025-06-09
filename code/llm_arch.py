@@ -65,3 +65,29 @@ class LayerNorm(nn.Module):
         var = x.var(dim=-1, keepdim=True, unbiased=False)
         norm_x = (x - mean) / torch.sqrt(var + self.eps)
         return norm_x * self.scale + self.shift
+    
+
+
+class GELU(nn.Module):
+    def forward(self, x):
+        return x * 0.5 * (1.0 + torch.tanh(
+            (2.0 / torch.pi) ** 0.5 * (x + 0.044715 * x.pow(3))
+        ))
+    
+    def __repr__(self):
+        return "GELU()"
+    
+class FeedForward(nn.Module):
+    def __init__(self, cfg):
+        super().__init__()
+        self.layers = nn.Sequential(
+            nn.Linear(cfg["emb_dim"], 4 * cfg["emb_dim"]), # Expension
+            GELU(), # Activation
+            nn.Linear(4 * cfg["emb_dim"], cfg["emb_dim"]) # Contraction
+        )
+
+    def forward(self, x):
+        return self.layers(x)
+    
+    def __repr__(self):
+        return "FeedForward()"

@@ -781,6 +781,8 @@ Read this great [medium article](https://medium.com/@vipul.koti333/from-theory-t
 
 See [LLM Architecture](./code/llm_arch.py) and [Scratch Book](./code/llm_scratch_book_1.py)
 
+### Normalisation layer
+
 Speficially, we are looking at the various layers in the transformer architecture:
 (from this [source](https://www.researchgate.net/figure/the-foundational-architecture-of-GPT-series-models_fig1_376740720))
 
@@ -805,3 +807,41 @@ class LayerNorm(nn.Module):
         return norm_x * self.scale + self.shift
 ```
 
+### GELU Activation
+
+Please read [this](https://en.wikipedia.org/wiki/Rectifier_(neural_networks)#Gaussian-error_linear_unit_(GELU)).
+
+Maths-wise, $GELU(x) = x * \Phi(x)$ where $\Phi$ is the Cumulative Distribution Function of the Standard Gaussian Distribution.
+
+An approximation used in GPT-2:
+
+$GELU(x) ~= 0.5 * x * (1 + tanh(\sqrt{2/\Pi} * (x + 0.044715 * x^3)))$
+
+In python:
+
+```python
+class GELU(nn.Module):
+    def forward(self, x):
+        return x * 0.5 * (1.0 + torch.tanh(
+            (2.0 / torch.pi) ** 0.5 * (x + 0.044715 * x.pow(3))
+        ))
+```
+
+### Feed Forward
+
+```python
+class FeedForward(nn.Module):
+    def __init__(self, cfg):
+        super().__init__()
+        self.layers = nn.Sequential(
+            nn.Linear(cfg["emb_dim"], 4 * cfg["emb_dim"]),
+            GELU(),
+            nn.Linear(4 * cfg["emb_dim"], cfg["emb_dim"])
+        )
+
+    def forward(self, x):
+        return self.layers(x)
+    
+    def __repr__(self):
+        return "FeedForward()"
+```

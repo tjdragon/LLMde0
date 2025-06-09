@@ -626,3 +626,158 @@ class MultiheadAttentionWrapper(nn.Module):
     def forward(self, x):
         return torch.cat([head(x) for head in self.heads], dim=-1)
 ```
+
+GPT uses 96 Attention Heads... this is a lot of matrix multiplications!
+
+### Multi-Head Attention Efficiency
+
+In the previous implementation, we performed two matrices multiplication... for a multi-head attention size of 96 like GPT3, that is not very efficient.
+
+Before:
+
+Assume $Inputs_X$, then two weight matrices $W_{q1}$ and $W_{q2}$ with a column size of 2, after matrix multiplication, we end up with $Q_1$ and $Q_2$ with the same number of columns.
+
+What about:
+
+$Inputs_X$ and just one weight matrix of size 4 $W_q$, then via just one multiplication we obtain $Q$ and then we split $Q$ into $Q_1$ and $Q_2$ with column sizes of 2.
+
+#### MultiheadAttention Forward Method Step-By-Step 1: Inputs
+
+Let's start with an $Input$ - there are 3 dimensions: b the number of batches, the number of tokens and the input dimension (dimension of vector embedding)
+For example:
+
+```text
+Input_X = tensor(
+    [[[1.7623, 1.4337, 1.2000, 1.2000, 1.5703, 1.2],   # Representation vector for word 1
+      [1.4337, 1.4337, 0.8493, 0.8493, 1.5010, 1.32],   # Representation vector for word 2
+      [1.2000, 0.8493, 1.2436, 1.2436, 1.0863, 1.45]]]) # Representation vector for word 3
+```
+- b = 1
+- num_tokens = 3
+- input_dimension = 6
+
+#### MultiheadAttention Forward Method Step-By-Step 2: d_out and num_heads
+
+What is the output dimension d_out and the number of heads, num_heads.
+We are deciding that the output dimension (context vector) is the same as the input dimension and the number of heads to be 2 (GPT3 uses 96!).
+
+- d_out = 6
+- num_heads = 2
+- head_dim = d_out / num_heads = 6 / 2 = 3
+
+#### MultiheadAttention Forward Method Step-By-Step 3: Initialise weight matrices
+
+Init $W_k$, $W_q$ and $W_v$ with a dimension of 6x6 = d_in * d_out randomly.
+
+#### MultiheadAttention Forward Method Step-By-Step 4: Calculate K, Q, V
+
+$K = Input * W_k$, $Q = Input * W_q$ and $V = Input * W_v$
+
+$Input$ is of dimension (1, 3, 6), $Ws$ is of dimension (6, 6), $K$ is of dimension (1, 3, 6), so are $Q$ and $V$
+
+#### MultiheadAttention Forward Method Step-By-Step 5: 4th dimension to K, Q, V
+
+Include num_heads and head_dim.
+
+- head_dim = d_out / num_heads = 6 / 2 = 3
+
+So that (b, num_tokens, d_out) becomes (b, num_tokens, num_heads, head_dim) or (1, 3, 6) becomes (1, 3, 2, 3).
+
+#### MultiheadAttention Forward Method Step-By-Step 6: Group the matrices by num_heads
+
+So that (b, num_tokens, num_heads, head_dim) becomes (b, num_heads, num_tokens, head_dim) or (1, 2, 3, 3).  
+This is done by transposing the matrix.
+
+#### MultiheadAttention Forward Method Step-By-Step 7: Compute Attention Scores
+
+It is basically $Queries * Keys.Transpose(2, 3)$
+
+#### MultiheadAttention Forward Method Step-By-Step 8: Mask attention score to implement Causal Attention
+
+This is about replacing the upper triangle of the matrix with -infinity and divide by sqrt(head_dim) (3 in our case)
+Then we apply softmax.
+Finally, implement dropout.
+
+#### MultiheadAttention Forward Method Step-By-Step 9: Calculation of the context vectors
+
+$Context Vector = AttentionWeights(b, num\_heads, num\_tokens, num\_tokens) * Values(b, num\_heads, num\_tokens, num\_tokens)$
+
+#### MultiheadAttention Forward Method Step-By-Step 10: Reformat the context vectors
+
+We need to (re)transpose again to go from (b, num_heads, num_tokens, head_dim) to (b, num_tokens, num_heads, head_dim).
+
+#### MultiheadAttention Forward Method Step-By-Step 11: Combine all heads
+
+This basically is done via flattening each token output into each row so that the resulting dimension is (b, num_tokens, d_out) or (1,3, 6) in our case.
+
+```python
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_in, d_out, context_length, dropout, num_heads, qkv_bias=False):
+        super().__init__()
+        assert (d_out % num_heads == 0), \
+            "d_out must be divisible by num_heads"
+
+        self.d_out = d_out
+        self.num_heads = num_heads
+        self.head_dim = d_out // num_heads # Reduce the projection dim to match desired output dim
+
+        self.W_query = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_key = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_value = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.out_proj = nn.Linear(d_out, d_out)  # Linear layer to combine head outputs
+        self.dropout = nn.Dropout(dropout)
+        self.register_buffer(
+            "mask",
+            torch.triu(torch.ones(context_length, context_length),
+                       diagonal=1)
+        )
+
+    def forward(self, x):
+        b, num_tokens, d_in = x.shape
+
+        keys = self.W_key(x) # Shape: (b, num_tokens, d_out)
+        queries = self.W_query(x)
+        values = self.W_value(x)
+
+        # We implicitly split the matrix by adding a `num_heads` dimension
+        # Unroll last dim: (b, num_tokens, d_out) -> (b, num_tokens, num_heads, head_dim)
+        keys = keys.view(b, num_tokens, self.num_heads, self.head_dim) 
+        values = values.view(b, num_tokens, self.num_heads, self.head_dim)
+        queries = queries.view(b, num_tokens, self.num_heads, self.head_dim)
+
+        # Transpose: (b, num_tokens, num_heads, head_dim) -> (b, num_heads, num_tokens, head_dim)
+        keys = keys.transpose(1, 2)
+        queries = queries.transpose(1, 2)
+        values = values.transpose(1, 2)
+
+        # Compute scaled dot-product attention (aka self-attention) with a causal mask
+        attn_scores = queries @ keys.transpose(2, 3)  # Dot product for each head
+
+        # Original mask truncated to the number of tokens and converted to boolean
+        mask_bool = self.mask.bool()[:num_tokens, :num_tokens]
+
+        # Use the mask to fill attention scores
+        attn_scores.masked_fill_(mask_bool, -torch.inf)
+        
+        attn_weights = torch.softmax(attn_scores / keys.shape[-1]**0.5, dim=-1)
+        attn_weights = self.dropout(attn_weights)
+
+        # Shape: (b, num_tokens, num_heads, head_dim)
+        context_vec = (attn_weights @ values).transpose(1, 2) 
+        
+        # Combine heads, where self.d_out = self.num_heads * self.head_dim
+        context_vec = context_vec.contiguous().view(b, num_tokens, self.d_out)
+        context_vec = self.out_proj(context_vec) # optional projection
+
+        return context_vec
+```
+
+## Stage 9: LLM Architecture
+
+We went through text, tokenized text, embeddings, multi-head attention to create context vectors.
+(Masked) multi-head attention are part of what is called "Transformer Block"
+We will use GPT-2's architecture from now one.
+Read this great [medium article](https://medium.com/@vipul.koti333/from-theory-to-code-step-by-step-implementation-and-code-breakdown-of-gpt-2-model-7bde8d5cecda)
+
+See [LLM Architecture](./code/llm_arch.py) and [Scratch Book](./code/llm_scratch_book_1.py)
+

@@ -18,3 +18,13 @@ model = DummyGPTModel(GPT_CONFIG_124M)
 logits = model(batch)
 print("Output shape:", logits.shape)
 print(logits)
+
+# Testing the normalisation layer
+from llm_arch import LayerNorm
+layer_norm = LayerNorm(emb_dim=5)
+out_ln = layer_norm(torch.randn(2,5)) 
+mean = out_ln.mean(dim=-1, keepdim=True)
+var = out_ln.var(dim=-1, keepdim=True)
+print("LayerNorm output shape:", out_ln.shape)
+print("Mean:", mean)
+print("Variance:", var)

@@ -786,5 +786,22 @@ Speficially, we are looking at the various layers in the transformer architectur
 
 ![Transformer Architecture](./images/tft-arch.png)
 
-Starting with the normalisation layer.
+Starting with the normalisation layer, which improves the stability and the effiency of the network training, by adjusting the outputs to have a mean of zero and variance of one (calculate the mean $M$ of the vector , calculate is variance $var$, normalize by calculating $(x_i-M)/\sqrt{var}$).
+
+In python:
+
+```python
+class LayerNorm(nn.Module):
+    def __init__(self, emb_dim):
+        super().__init__()
+        self.eps = 1e-5 # to avoid division  by 0
+        self.scale = nn.Parameter(torch.ones(emb_dim))
+        self.shift = nn.Parameter(torch.zeros(emb_dim))
+
+    def forward(self, x):
+        mean = x.mean(dim=-1, keepdim=True)
+        var = x.var(dim=-1, keepdim=True, unbiased=False)
+        norm_x = (x - mean) / torch.sqrt(var + self.eps)
+        return norm_x * self.scale + self.shift
+```
 

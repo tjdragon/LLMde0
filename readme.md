@@ -781,3 +781,10 @@ Read this great [medium article](https://medium.com/@vipul.koti333/from-theory-t
 
 See [LLM Architecture](./code/llm_arch.py) and [Scratch Book](./code/llm_scratch_book_1.py)
 
+Speficially, we are looking at the various layers in the transformer architecture:
+(from this [source](https://www.researchgate.net/figure/the-foundational-architecture-of-GPT-series-models_fig1_376740720))
+
+![Transformer Architecture](./images/tft-arch.png)
+
+Starting with the normalisation layer.
+

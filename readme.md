@@ -845,3 +845,15 @@ class FeedForward(nn.Module):
     def __repr__(self):
         return "FeedForward()"
 ```
+
+### Shortcuts
+
+In the diagram above, it is the "+" sign: when we go from the embeddings into the normalisation bypassing the attention layer or the feed forward layer.
+Shortcut connections are also known a "skip" or "residual" connections.
+
+In the backward pass, when weights of the neural network become small, it is very difficult to make learning progress.
+
+Shortcut is therefore a way to skip a neural network layer.
+
+Also read [Visualizing the Loss Landscape of Neural Nets](https://arxiv.org/abs/1712.09913).
+

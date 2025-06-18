@@ -34,3 +34,23 @@ from llm_arch import FeedForward
 feed_forward = FeedForward(GPT_CONFIG_124M)
 ff_out = feed_forward(torch.randn(2, 3, 768))
 print("FeedForward output shape:", ff_out.shape)
+
+# Testing the transformer block
+from llm_arch import TransformerBlock
+torch.manual_seed(123)
+x = torch.rand(2, 4, 768) #A
+block = TransformerBlock(GPT_CONFIG_124M)
+output = block(x)
+print("TransformerBlock Input shape:", x.shape)
+print("TransformerBlock Output shape:", output.shape)
+
+print("YourChatModelInput");
+from llm_arch import YourChatModel
+torch.manual_seed(123)
+model = YourChatModel(GPT_CONFIG_124M)
+out = model(batch)
+print(" Input batch:\n", batch)
+print(" Output shape:\n", out.shape)
+print(out)
+total_params = sum(p.numel() for p in model.parameters())
+print(f" Total number of parameters: {total_params:,}")

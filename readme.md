@@ -857,3 +857,56 @@ Shortcut is therefore a way to skip a neural network layer.
 
 Also read [Visualizing the Loss Landscape of Neural Nets](https://arxiv.org/abs/1712.09913).
 
+## Stage 10: Transformer Block
+
+The transformer block is the blue architecture below:
+
+![LLM Architecture](./images/llm-arch.png)
+
+The "N x" stands for times-N. In the GPT architecture, the transformer block is applied 12 times.
+
+Remember the process is:
+
+- Multi-hread attention layer, then
+- Layer normalisation, then,
+- Dropout, then,
+- Feed-forward layers, finally,
+- GELU activation.
+
+In [code](./code/llm_arch.py)
+```python
+class TransformerBlock(nn.Module):
+    def __init__(self, cfg):
+        super().__init__()
+        self.att = MultiHeadAttention(
+            d_in=cfg["emb_dim"],
+            d_out=cfg["emb_dim"],
+            context_length=cfg["context_length"],
+            num_heads=cfg["n_heads"], 
+            dropout=cfg["drop_rate"],
+            qkv_bias=cfg["qkv_bias"])
+        self.ff = FeedForward(cfg)
+        self.norm1 = LayerNorm(cfg["emb_dim"])
+        self.norm2 = LayerNorm(cfg["emb_dim"])
+        self.drop_shortcut = nn.Dropout(cfg["drop_rate"])
+
+    def forward(self, x):
+        # Shortcut connection for attention block
+        shortcut = x
+        x = self.norm1(x)
+        x = self.att(x)  # Shape [batch_size, num_tokens, emb_size]
+        x = self.drop_shortcut(x)
+        x = x + shortcut  # Add the original input back
+
+        # Shortcut connection for feed forward block
+        shortcut = x
+        x = self.norm2(x)
+        x = self.ff(x)
+        x = self.drop_shortcut(x)
+        x = x + shortcut  # Add the original input back
+
+        return x
+```
+
+[TJ](https://www.linkedin.com/in/tsjanaudy/)
+

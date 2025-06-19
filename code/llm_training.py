@@ -1,9 +1,7 @@
 import tiktoken
 import torch
 
-file_path = "./data/TinyShakespeare.txt"
-
-with open("./data/TinyShakespeare.txt", "r") as f:
+with open("./data/SuperTinyShakespeare.txt", "r") as f:
     text_data = f.read()
 
 # First 100 characters
@@ -139,6 +137,7 @@ print("Training model on device:", device)
 # Validation loss: 10.96940314429147
 
 def evaluate_model(model, train_loader, val_loader, device, eval_iter):
+    print(" Evaluating model...")
     model.eval()
     with torch.no_grad():
         train_loss = calc_loss_loader(train_loader, model, device, num_batches=eval_iter)
@@ -169,6 +168,7 @@ def train_model_simple(model, train_loader, val_loader, optimizer, device, num_e
 
     # Main training loop
     for epoch in range(num_epochs):
+        print(f"Epoch {epoch}")
         model.train()  # Set model to training mode
         
         for input_batch, target_batch in train_loader:
@@ -206,11 +206,17 @@ model = YourChatModel(GPT_CONFIG_124M)
 model.to(device)
 optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
 
-num_epochs = 10
+print("Starting training...")
 train_losses, val_losses, tokens_seen = train_model_simple(
-    model, train_loader, val_loader, optimizer, device,
-    num_epochs=num_epochs, eval_freq=5, eval_iter=5,
-    start_context="All the contagion of", tokenizer=tokenizer
+    model, 
+    train_loader, 
+    val_loader, 
+    optimizer, device,
+    num_epochs=10, 
+    eval_freq=5, 
+    eval_iter=5,
+    start_context="All the contagion of", 
+    tokenizer=tokenizer
 )
 
 end_time = time.time()

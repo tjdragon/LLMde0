@@ -1,7 +1,7 @@
 # LLM de 0
 
 LLM from scratch ("de zero") is yet another build your own LLM.  
-How does it defer from others? It does not use ANY lib..... all is done from scratch...
+How does it defer from others? All is done from "scratch" with the help of a few libs...
 The easiest and most painful way to learn LLMs... but arguably the best way.
 
 As this tutorial deals with text, I still went with [Python](https://www.python.org/), the easiest language to handle text (or is it [Perl](https://www.perl.org/)?).
@@ -1009,7 +1009,7 @@ decoded_text = bpe_tokenizer.decode(to_decode)
 print(decoded_text)
 ```
 
-What is generated now is gibirish because the model used has not been trained on data.  
+What is generated now is gibberish because the model used has not been trained on data.  
 With the input context "All the contagion", the result comes out as "All the contagion davidiman Byeswick unlockedometer".
 
 # Model training
@@ -1253,6 +1253,20 @@ end_time = time.time()
 execution_time_minutes = (end_time - start_time) / 60
 print(f"Training completed in {execution_time_minutes:.2f} minutes.")
 ```
+
+## What's next
+
+If you'd like an in-depth deep-dive into LLMs, please watch all [videos](https://www.youtube.com/watch?v=Xpr8D6LeAtw&list=WL&index=1) by [Raj Abhijit Dandekar](https://www.linkedin.com/in/raj-abhijit-dandekar-67a33118a/) from [Vizuara](https://vizuara.ai/).
+
+The learning does not stop at the model training, more learning is required to understand [fine-tuning](https://www.youtube.com/watch?v=yZpy_hsC1bE), etc.
+
+### Final thoughts.
+
+- The computing power required is huge
+- It is all about data, quality data
+- But still conceptually, LLMs are all about probability of deduction of the next "word" based on previous "words" (referred to as context window or memory)
+    - If the number of words in the French language is 100k, and if we assume a context window of 2048 words (for a small model), essentially a diagonal matrix, the weights number is (100k * 100k) * 2048 / 2 =  10,240,000,000,000 = 10240 billion weights (this is reduced eliminating weights close to 0)
+- Learn, share, enjoy, have fun.
 
 [TJ](https://www.linkedin.com/in/tsjanaudy/)
 

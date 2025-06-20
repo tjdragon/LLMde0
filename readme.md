@@ -1268,5 +1268,5 @@ The learning does not stop at the model training, more learning is required to u
     - If the number of words in the French language is 100k, and if we assume a context window of 2048 words (for a small model), essentially a diagonal matrix, the weights number is (100k * 100k) * 2048 / 2 =  10,240,000,000,000 = 10240 billion weights (this is reduced eliminating weights close to 0)
 - Learn, share, enjoy, have fun.
 
-[TJ](https://www.linkedin.com/in/tsjanaudy/)
+[TJ]
 

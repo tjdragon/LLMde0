@@ -1254,6 +1254,8 @@ execution_time_minutes = (end_time - start_time) / 60
 print(f"Training completed in {execution_time_minutes:.2f} minutes.")
 ```
 
+All in [one file](./code/llm_all_in_one.py)
+
 ## What's next
 
 If you'd like an in-depth deep-dive into LLMs, please watch all [videos](https://www.youtube.com/watch?v=Xpr8D6LeAtw&list=WL&index=1) by [Raj Abhijit Dandekar](https://www.linkedin.com/in/raj-abhijit-dandekar-67a33118a/) from [Vizuara](https://vizuara.ai/).

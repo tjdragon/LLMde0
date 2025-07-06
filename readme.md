@@ -10,6 +10,7 @@ Amazing other tutorials:
 
 - [Building LLMs from scratch: Series introduction](https://www.youtube.com/watch?v=Xpr8D6LeAtw&list=WL&index=1) - the one I am following and transducting here - arguably the best tutorial out there!
 - [Andrej Karpathy](https://www.youtube.com/@AndrejKarpathy)
+- [Peter Bloem's Transformers from scratch](https://peterbloem.nl/blog/transformers?s=08)
 - [Build a Large Language Model (From Scratch)](https://www.google.fr/books/edition/Build_a_Large_Language_Model_From_Scratc/scIgEQAAQBAJ?hl=en&gbpv=0)
 
 ## LLM Large Language Model De Zero
